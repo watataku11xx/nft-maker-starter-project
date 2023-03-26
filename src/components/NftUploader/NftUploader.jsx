@@ -1,4 +1,5 @@
 // NftUploader.jsx
+import { ethers } from "ethers";
 import { Button } from "@mui/material";
 import React from "react";
 import { useEffect, useState } from 'react'
@@ -44,12 +45,40 @@ const NftUploader = () => {
     }
   };
 
+  const askContractToMintNft = async (ipfs) => {
+    const CONTRACT_ADDRESS = "0x2caEC72c90e5b3Ba980B7751e0022C60ebFf96d4";
+    try {
+      const { ethereum } = window;
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const connectedContract = new ethers.Contract(
+          CONTRACT_ADDRESS,
+          Web3Mint.abi,
+          signer
+        );
+        console.log("Going to pop wallet now to pay gas...");
+        let nftTxn = await connectedContract.mintIpfsNFT("sample",ipfs);
+        console.log("Mining...please wait.");
+        await nftTxn.wait();
+        console.log(
+          `Mined, see transaction: https://goerli.etherscan.io/tx/${nftTxn.hash}`
+        );
+      } else {
+        console.log("Ethereum object doesn't exist!");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
 
   const renderNotConnectedContainer = () => (
       <button onClick={connectWallet} className="cta-button connect-wallet-button">
         Connect to Wallet
       </button>
     );
+
   useEffect(() => {
     checkIfWalletIsConnected();
   }, []);

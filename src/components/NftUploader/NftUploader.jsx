@@ -1,4 +1,6 @@
 // NftUploader.jsx
+import { Web3Storage } from 'web3.storage';
+import Web3Mint from "../../utils/Web3Mint.json";
 import { ethers } from "ethers";
 import { Button } from "@mui/material";
 import React from "react";
@@ -7,6 +9,7 @@ import ImageLogo from "./image.svg";
 import "./NftUploader.css";
 
 const NftUploader = () => {
+  const API_KEY ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDlBOTM1Rjk3QTk3NUQyMUNDZDBjQjcyZjlCRTI1OEJlNGQ1MjlDMzMiLCJpc3MiOiJ3ZWIzLXN0b3JhZ2UiLCJpYXQiOjE2Nzk4NTA1ODgzMjUsIm5hbWUiOiJzYW1wbGUifQ.pkCFTS_34uXN7xt5Z6POiplyfgWoQCALgWJo2Xlt4PI";
   const [currentAccount, setCurrentAccount] = useState("");
   console.log("currentAccount: ", currentAccount);
   const checkIfWalletIsConnected = async () => {
@@ -83,6 +86,23 @@ const NftUploader = () => {
     checkIfWalletIsConnected();
   }, []);
 
+  const imageToNFT = async (e) => {
+    const client = new Web3Storage({ token: API_KEY })
+    const image = e.target
+    console.log(image)
+
+    const rootCid = await client.put(image.files, {
+        name: 'experiment',
+        maxRetries: 3
+    })
+    const res = await client.get(rootCid) // Web3Response
+    const files = await res.files() // Web3File[]
+    for (const file of files) {
+      console.log("file.cid:",file.cid)
+      askContractToMintNft(file.cid)
+    }
+  }
+
   return (
     <div className="outerBox">
       {currentAccount === "" ? (
@@ -98,12 +118,12 @@ const NftUploader = () => {
           <img src={ImageLogo} alt="imagelogo" />
           <p>ここにドラッグ＆ドロップしてね</p>
         </div>
-        <input className="nftUploadInput" multiple name="imageURL" type="file" accept=".jpg , .jpeg , .png"  />
+        <input className="nftUploadInput" multiple name="imageURL" type="file" accept=".jpg , .jpeg , .png" onChange={imageToNFT} />
       </div>
       <p>または</p>
       <Button variant="contained">
         ファイルを選択
-        <input className="nftUploadInput" type="file" accept=".jpg , .jpeg , .png"/>
+        <input className="nftUploadInput" type="file" accept=".jpg , .jpeg , .png" onChange={imageToNFT}/>
       </Button>
     </div>
   );
